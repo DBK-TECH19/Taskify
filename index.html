@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskify - Premium Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(12px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .animate-fade-in-up {
+            animation: fadeInUp 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen text-slate-800 font-sans antialiased selection:bg-indigo-500 selection:text-white">
+
+    <div class="h-1 w-full bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-500"></div>
+
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200/80 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-2 group">
+            <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-xs group-hover:scale-105 transition-transform duration-300">🚀</div>
+            <h1 class="text-2xl font-black bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent tracking-tight">Taskify</h1>
+        </div>
+        <div class="flex items-center gap-4">
+            <span id="welcomeUser" class="text-slate-600 font-semibold tracking-tight"></span>
+            <button onclick="logout()" class="bg-slate-100 hover:bg-red-50 text-slate-700 hover:text-red-600 text-sm font-bold px-4 py-2 rounded-xl transition-all duration-300 cursor-pointer border border-transparent transform active:scale-95">
+                Log Out
+            </button>
+        </div>
+    </nav>
+
+    <main class="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs h-fit hover:shadow-md transition-shadow duration-300">
+            <h2 class="text-lg font-bold text-slate-900 tracking-tight mb-4 flex items-center gap-2">
+                <span>✨</span> Create New Task
+            </h2>
+            <form id="taskForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Task Title *</label>
+                    <input type="text" id="taskTitle" required 
+                           class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 placeholder:text-slate-400 bg-slate-50/50 focus:bg-white" 
+                           placeholder="What's your focus?">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Context Description</label>
+                    <textarea id="taskDesc" rows="3" 
+                              class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 placeholder:text-slate-400 bg-slate-50/50 focus:bg-white" 
+                              placeholder="Add optional notes..."></textarea>
+                </div>
+                <button type="submit" 
+                        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-3 rounded-xl transition-all duration-300 shadow-sm shadow-indigo-600/10 hover:shadow-lg hover:shadow-indigo-600/20 active:scale-98 cursor-pointer">
+                    Add Task
+                </button>
+            </form>
+        </div>
+
+        <div class="lg:col-span-2 space-y-5">
+            <div class="flex justify-between items-center px-2">
+                <h2 class="text-xl font-bold text-slate-900 tracking-tight flex items-center gap-2">
+                    🎯 Personal Tasks
+                </h2>
+                <span id="taskCount" class="bg-indigo-50 text-indigo-600 text-xs font-black px-3 py-1.5 rounded-full border border-indigo-100">
+                    0 Tasks
+                </span>
+            </div>
+            
+            <div id="tasksContainer" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:5000/api";
+        const userId = localStorage.getItem('userId');
+        const username = localStorage.getItem('username');
+
+        if (!userId) {
+            window.location.href = 'login.html';
+        } else {
+            document.getElementById('welcomeUser').textContent = `Hello, ${username || 'User'}! 👋`;
+        }
+
+        async function fetchTasks() {
+            try {
+                const response = await fetch(`${API_BASE}/tasks?user_id=${userId}`);
+                const tasks = await response.json();
+                
+                const container = document.getElementById('tasksContainer');
+                const countBadge = document.getElementById('taskCount');
+                container.innerHTML = '';
+                
+                // Secure array fallback calculations
+                const totalTasks = Array.isArray(tasks) ? tasks.length : 0;
+                countBadge.textContent = `${totalTasks} Task${totalTasks !== 1 ? 's' : ''}`;
+
+                if (totalTasks === 0) {
+                    container.innerHTML = `
+                        <div class="col-span-full border-2 border-dashed border-slate-200 rounded-2xl p-10 text-center text-slate-400 animate-fade-in-up">
+                            <span class="text-3xl block mb-2">🎈</span>
+                            <p class="font-medium">All caught up! No active tasks found.</p>
+                        </div>`;
+                    return;
+                }
+
+                tasks.forEach((task, idx) => {
+                    const isCompleted = task.status === 'Completed';
+                    const card = document.createElement('div');
+                    
+                    card.className = `p-5 rounded-2xl border flex flex-col justify-between shadow-xs transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 animate-fade-in-up ${
+                        isCompleted ? 'bg-slate-50/80 border-slate-200' : 'bg-white border-slate-200/80 hover:border-indigo-100'
+                    }`;
+                    card.style.animationDelay = `${idx * 0.03}s`;
+
+                    card.innerHTML = `
+                        <div>
+                            <h3 class="font-bold text-base text-slate-900 tracking-tight ${isCompleted ? 'line-through text-slate-400 opacity-60' : ''}">${task.title}</h3>
+                            <p class="text-xs text-slate-500 mt-1 mb-5 ${isCompleted ? 'line-through opacity-40' : ''}">${task.description || 'No notes included.'}</p>
+                        </div>
+                        <div class="flex justify-between items-center pt-3 border-t border-slate-100">
+                            <span class="text-[11px] font-extrabold tracking-wide uppercase px-2.5 py-1 rounded-md ${
+                                task.status === 'Completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                                task.status === 'In Progress' ? 'bg-amber-50 text-amber-700 border border-amber-100 animate-pulse' : 
+                                'bg-sky-50 text-sky-700 border border-sky-100'
+                            }">${task.status}</span>
+                            
+                            <div class="flex gap-1.5">
+                                <button onclick="toggleStatus(${task.id}, '${task.status}')" class="text-slate-400 hover:text-indigo-600 p-2 hover:bg-slate-50 rounded-xl transition-all duration-200 cursor-pointer active:scale-90" title="Cycle Status">🔄</button>
+                                <button onclick="deleteTask(${task.id}, this.closest('.animate-fade-in-up'))" class="text-slate-400 hover:text-red-600 p-2 hover:bg-red-50 rounded-xl transition-all duration-200 cursor-pointer active:scale-90" title="Delete Task">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } catch (err) {
+                console.error("Fetch failure:", err);
+            }
+        }
+
+        document.getElementById('taskForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('taskTitle').value.trim();
+            const description = document.getElementById('taskDesc').value.trim();
+
+            try {
+                const response = await fetch(`${API_BASE}/tasks`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description, user_id: userId })
+                });
+
+                if (response.ok) {
+                    document.getElementById('taskForm').reset();
+                    fetchTasks();
+                } else {
+                    const errRes = await response.json();
+                    alert(`Error: ${errRes.error}`);
+                }
+            } catch (err) {
+                console.error("Write error:", err);
+            }
+        });
+
+        async function toggleStatus(taskId, currentStatus) {
+            let nextStatus = 'Pending';
+            if (currentStatus === 'Pending') nextStatus = 'In Progress';
+            else if (currentStatus === 'In Progress') nextStatus = 'Completed';
+
+            try {
+                const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: nextStatus, user_id: userId })
+                });
+                if (response.ok) fetchTasks();
+            } catch (err) {
+                console.error("Update error:", err);
+            }
+        }
+
+        async function deleteTask(taskId, cardElement) {
+            if (!confirm("Delete this task permanently?")) return;
+            cardElement.style.transform = "scale(0.92) translateY(8px)";
+            cardElement.style.opacity = "0";
+            cardElement.style.transition = "all 0.25s ease-out";
+            
+            setTimeout(async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/tasks/${taskId}`, { method: 'DELETE' });
+                    if (response.ok) fetchTasks();
+                } catch (err) {
+                    console.error("Delete sequence error:", err);
+                }
+            }, 200);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        fetchTasks();
+    </script>
+</body>
+</html>

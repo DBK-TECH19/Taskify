@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taskify - Security Login</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen font-sans antialiased">
+    
+    <div class="bg-white p-8 rounded-2xl border border-slate-200/80 shadow-md w-full max-w-md transform transition-all duration-500 hover:shadow-lg">
+        <div class="text-center mb-6">
+            <div class="inline-block bg-indigo-50 p-3 rounded-2xl text-2xl mb-2 text-indigo-600 animate-bounce">🔒</div>
+            <h2 class="text-2xl font-black text-slate-900 tracking-tight">Welcome Back</h2>
+            <p class="text-sm text-slate-500 mt-1">Log into your unified dashboard</p>
+        </div>
+        
+        <div id="errorMessage" class="hidden bg-red-50 border border-red-100 text-red-700 p-3.5 rounded-xl text-xs font-semibold mb-4 transition-all duration-300"></div>
+
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Username</label>
+                <input type="text" id="username" required class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 placeholder:text-slate-400 bg-slate-50/50 focus:bg-white">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Password</label>
+                <input type="password" id="password" required class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 placeholder:text-slate-400 bg-slate-50/50 focus:bg-white">
+            </div>
+            <button type="submit" id="submitBtn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold p-3 rounded-xl transition-all duration-300 shadow-sm shadow-indigo-600/10 hover:shadow-lg hover:shadow-indigo-600/20 active:scale-98 cursor-pointer mt-2">
+                Log In
+            </button>
+        </form>
+        
+        <p class="text-xs text-center text-slate-600 mt-5 tracking-tight">
+            Don't have an account? <a href="register.html" class="text-indigo-600 font-bold hover:underline transition-all">Sign Up Free</a>
+        </p>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Set visual loading state
+            submitBtn.textContent = "Authenticating...";
+            submitBtn.style.opacity = "0.7";
+
+            try {
+                const response = await fetch('http://127.0.0.1:5000/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('userId', data.user.id);
+                    localStorage.setItem('username', data.user.username);
+                    window.location.href = 'index.html';
+                } else {
+                    errorDiv.textContent = data.error || 'Authentication rejected.';
+                    errorDiv.classList.remove('hidden');
+                    submitBtn.textContent = "Log In";
+                    submitBtn.style.opacity = "1";
+                }
+            } catch (err) {
+                errorDiv.textContent = 'Server structural handshakes down.';
+                errorDiv.classList.remove('hidden');
+                submitBtn.textContent = "Log In";
+                submitBtn.style.opacity = "1";
+            }
+        });
+    </script>
+</body>
+</html>
