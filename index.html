@@ -84,15 +84,14 @@
 
         async function fetchTasks() {
             try {
-                // Update this line in index.html and similar calls
-const response = await fetch(`${API_BASE}/api/tasks?user_id=${userId}`);
+                // Updated: Added /api/
+                const response = await fetch(`${API_BASE}/api/tasks?user_id=${userId}`);
                 const tasks = await response.json();
                 
                 const container = document.getElementById('tasksContainer');
                 const countBadge = document.getElementById('taskCount');
                 container.innerHTML = '';
                 
-                // Secure array fallback calculations
                 const totalTasks = Array.isArray(tasks) ? tasks.length : 0;
                 countBadge.textContent = `${totalTasks} Task${totalTasks !== 1 ? 's' : ''}`;
 
@@ -145,7 +144,8 @@ const response = await fetch(`${API_BASE}/api/tasks?user_id=${userId}`);
             const description = document.getElementById('taskDesc').value.trim();
 
             try {
-                const response = await fetch(`${API_BASE}/tasks`, {
+                // Updated: Added /api/
+                const response = await fetch(`${API_BASE}/api/tasks`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ title, description, user_id: userId })
@@ -169,7 +169,8 @@ const response = await fetch(`${API_BASE}/api/tasks?user_id=${userId}`);
             else if (currentStatus === 'In Progress') nextStatus = 'Completed';
 
             try {
-                const response = await fetch(`${API_BASE}/tasks/${taskId}`, {
+                // Updated: Added /api/
+                const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ status: nextStatus, user_id: userId })
@@ -188,7 +189,8 @@ const response = await fetch(`${API_BASE}/api/tasks?user_id=${userId}`);
             
             setTimeout(async () => {
                 try {
-                    const response = await fetch(`${API_BASE}/tasks/${taskId}`, { method: 'DELETE' });
+                    // Updated: Added /api/
+                    const response = await fetch(`${API_BASE}/api/tasks/${taskId}`, { method: 'DELETE' });
                     if (response.ok) fetchTasks();
                 } catch (err) {
                     console.error("Delete sequence error:", err);
