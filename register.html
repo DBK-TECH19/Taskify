@@ -32,8 +32,9 @@
     </div>
 
     <script>
-        // This must be your live Render URL, not http://127.0.0.1:5000
-const API_BASE = "https://taskify-urwo.onrender.com";
+        // Set the live backend URL
+        const API_BASE = "https://taskify-urwo.onrender.com";
+
         document.getElementById('registerForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
@@ -41,11 +42,13 @@ const API_BASE = "https://taskify-urwo.onrender.com";
             const errorDiv = document.getElementById('errorMessage');
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/register', {
+                // Dynamically construct the full URL
+                const response = await fetch(`${API_BASE}/api/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
+                
                 const data = await response.json();
 
                 if (response.ok) {

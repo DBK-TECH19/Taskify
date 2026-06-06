@@ -84,7 +84,8 @@
 
         async function fetchTasks() {
             try {
-                const response = await fetch(`${API_BASE}/tasks?user_id=${userId}`);
+                // Update this line in index.html and similar calls
+const response = await fetch(`${API_BASE}/api/tasks?user_id=${userId}`);
                 const tasks = await response.json();
                 
                 const container = document.getElementById('tasksContainer');

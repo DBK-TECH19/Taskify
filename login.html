@@ -37,6 +37,9 @@
     </div>
 
     <script>
+        // Set the live backend URL
+        const API_BASE = "https://taskify-urwo.onrender.com";
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;
@@ -44,16 +47,17 @@
             const errorDiv = document.getElementById('errorMessage');
             const submitBtn = document.getElementById('submitBtn');
 
-            // Set visual loading state
             submitBtn.textContent = "Authenticating...";
             submitBtn.style.opacity = "0.7";
 
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/login', {
+                // Use API_BASE here
+                const response = await fetch(`${API_BASE}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ username, password })
                 });
+                
                 const data = await response.json();
 
                 if (response.ok) {
@@ -67,7 +71,7 @@
                     submitBtn.style.opacity = "1";
                 }
             } catch (err) {
-                errorDiv.textContent = 'Server structural handshakes down.';
+                errorDiv.textContent = 'Cannot connect to backend server.';
                 errorDiv.classList.remove('hidden');
                 submitBtn.textContent = "Log In";
                 submitBtn.style.opacity = "1";
